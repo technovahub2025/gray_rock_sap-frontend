@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { buildOrderPlan } from './orderPlanning'
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const apiUrl = (path) => (API_BASE_URL ? `${API_BASE_URL}${path}` : path)
+
 const emptyOrder = {
   customer: '',
   product: '',
@@ -65,8 +68,11 @@ export function useOperationsData() {
   const loadAll = useCallback(
     async (query = '') => {
       try {
-        const ordersUrl = query ? `/api/orders?q=${encodeURIComponent(query)}` : '/api/orders'
-        const [orderRes, inventoryRes] = await Promise.all([fetch(ordersUrl), fetch('/api/inventory')])
+        const ordersPath = query ? `/api/orders?q=${encodeURIComponent(query)}` : '/api/orders'
+        const [orderRes, inventoryRes] = await Promise.all([
+          fetch(apiUrl(ordersPath)),
+          fetch(apiUrl('/api/inventory')),
+        ])
         if (!orderRes.ok || !inventoryRes.ok) throw new Error('Request failed')
         const [orderData, inventoryData] = await Promise.all([orderRes.json(), inventoryRes.json()])
 
@@ -94,7 +100,7 @@ export function useOperationsData() {
   }, [loadAll])
 
   const createOrder = async (payload) => {
-    const res = await fetch('/api/orders', {
+    const res = await fetch(apiUrl('/api/orders'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -114,7 +120,7 @@ export function useOperationsData() {
     const targetId = id ?? selectedOrderId
     if (!targetId) return false
 
-    const res = await fetch(`/api/orders/${targetId}`, {
+    const res = await fetch(apiUrl(`/api/orders/${targetId}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
@@ -216,7 +222,7 @@ export function useOperationsData() {
   }
 
   const deleteOrder = async (id) => {
-    const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' })
+    const res = await fetch(apiUrl(`/api/orders/${id}`), { method: 'DELETE' })
     if (res.ok) {
       if (selectedOrderId === id) setSelectedOrderId(null)
       await loadAll(search)
@@ -228,7 +234,7 @@ export function useOperationsData() {
   }
 
   const createInventory = async (payload) => {
-    const res = await fetch('/api/inventory', {
+    const res = await fetch(apiUrl('/api/inventory'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -243,7 +249,7 @@ export function useOperationsData() {
   }
 
   const updateInventory = async (id, patch) => {
-    const res = await fetch(`/api/inventory/${id}`, {
+    const res = await fetch(apiUrl(`/api/inventory/${id}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
@@ -258,7 +264,7 @@ export function useOperationsData() {
   }
 
   const deleteInventory = async (id) => {
-    const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
+    const res = await fetch(apiUrl(`/api/inventory/${id}`), { method: 'DELETE' })
     if (res.ok) {
       await loadAll(search)
       addToast('success', 'Inventory item deleted.')
