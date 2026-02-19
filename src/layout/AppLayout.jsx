@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ToastStack } from '../components/ToastStack'
 import { navItems } from '../data/constants'
@@ -49,11 +50,16 @@ const pageDescriptions = {
 export function AppLayout() {
   const location = useLocation()
   const data = useOperationsData()
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const current = pageDescriptions[location.pathname] ?? pageDescriptions['/order']
+
+  useEffect(() => {
+    setIsMobileNavOpen(false)
+  }, [location.pathname])
 
   return (
     <div className="page-shell">
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileNavOpen ? 'mobile-open' : ''}`}>
         <div className="brand">
           <h1>GreyRock</h1>
           <p>Order to Delivery System</p>
@@ -80,8 +86,28 @@ export function AppLayout() {
           </p>
         </div>
       </aside>
+      <button
+        type="button"
+        className="mobile-nav-toggle"
+        onClick={() => setIsMobileNavOpen((prev) => !prev)}
+        aria-label={isMobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+      >
+        <span className={isMobileNavOpen ? 'close-icon' : 'hamburger-icon'} aria-hidden="true" />
+      </button>
+      {isMobileNavOpen && (
+        <button
+          type="button"
+          className="mobile-nav-backdrop"
+          onClick={() => setIsMobileNavOpen(false)}
+          aria-label="Close navigation menu backdrop"
+        />
+      )}
 
       <main className="main-area">
+        <div className="mobile-brand" aria-hidden="true">
+          <h1>GreyRock</h1>
+          <p>Order to Delivery System</p>
+        </div>
         <header className="header-bar">
           <div>
             <h2>{current.title}</h2>
