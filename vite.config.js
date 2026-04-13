@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    base: '/test_grayRock/',
     server: {
       proxy: {
         '/api': env.VITE_API_PROXY_TARGET || 'http://localhost:5000',
